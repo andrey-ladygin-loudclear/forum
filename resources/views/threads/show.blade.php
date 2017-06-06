@@ -32,9 +32,13 @@
                         {{ csrf_field() }}
 
                         <div class="form-group">
-                            <textarea name="body" id="body" placeholder="Have something to say?" rows="5"></textarea>
+                            <div class="form-group">
+                                <textarea class="form-control" name="body" id="body" placeholder="Have something to say?" rows="5"></textarea>
+                            </div>
 
-                            <button type="submit" class="btn btn-default">Post</button>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-default">Post</button>
+                            </div>
                         </div>
                     </form>
                 </div>
