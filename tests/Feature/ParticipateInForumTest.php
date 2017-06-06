@@ -11,7 +11,10 @@ class ParticipateInForumTest extends TestCase
 {
     use DatabaseMigrations;
 
-    /** @test */
+    /**
+     * @test
+     * expectedException app\Exceptions\SomeException
+     */
     function unauthenticated_user_may_not_add_replies()
     {
         $this->expectException('Illuminate\Auth\AuthenticationException');

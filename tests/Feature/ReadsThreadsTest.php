@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class ReadsThreadsTest extends TestCase
 {
+    use DatabaseMigrations;
 
     private $thread;
 
@@ -22,7 +23,7 @@ class ReadsThreadsTest extends TestCase
     /** @test */
     public function a_user_can_view_all_threads()
     {
-        $response = $this->get('/');
+        $response = $this->get('/threads');
 
         $response->assertSee($this->thread->title)
             ->assertStatus(200);
