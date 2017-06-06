@@ -19,7 +19,7 @@ class ParticipateInForumTest extends TestCase
     {
         $this->expectException('Illuminate\Auth\AuthenticationException');
 
-        $this->post('/threads/1/replies', []);
+        $this->post('/threads/some-channel/1/replies', []);
     }
 
     /** @test */
@@ -30,15 +30,11 @@ class ParticipateInForumTest extends TestCase
         // When the user adds a reply to the thread
         // Then their reply should be visible on the page
 
-        // add test shortcode
-        // add factory shortcode
+        $this->be(create('App\User'));
 
-        $user = factory('App\User')->create();
-        $this->be($user);
+        $thread = create('App\Thread');
 
-        $thread = factory('App\Thread')->create();
-
-        $reply = factory('App\Reply')->make();
+        $reply = make('App\Reply');
 
         //if(app()->environment() === 'testing') throw $exception;
         //added to handler because it not throw exception on non existing method
@@ -46,5 +42,19 @@ class ParticipateInForumTest extends TestCase
 
         $this->get($thread->path())
             ->assertSee($reply->body);
+    }
+
+    /**
+     * @expectedException Illuminate\Validation\ValidationException
+     * @test */
+    function a_reply_requires_a_body()
+    {
+        $this->signIn();
+
+        $thread = create('App\Thread');
+        $reply = make('App\Reply', ['body' => null]);
+
+        $this->post($thread->path().'/replies', $reply->toArray())
+            ->assertSessionHasErrors('title');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -25,18 +26,63 @@ class CreateThreadsTest extends TestCase
     function an_authenticated_user_can_create_new_forum_threads()
     {
         // Given we have a signed in user
-        $this->be(create('App\User'));
+        $this->signIn();
 
         // When we hit the endpoint to create a new thread
-        $thread = raw('App\Thread');
+        $thread = make('App\Thread');
 
-        $this->post('/threads', $thread->toArray());
+        $response = $this->post('/threads', $thread->toArray());
 
         // Then, when we visit the thread page.
-        $this->get($thread->path());
+        $response = $this->get($response->headers->get('Location'));
 
         // We should see the new page
-        $this->assertSee($thread->title)
+        $response->assertSee($thread->title)
             ->assertSee($thread->body);
+    }
+
+    /**
+     * @expectedException Illuminate\Validation\ValidationException
+     * @test */
+    function a_thread_requires_a_title()
+    {
+        $this->publishThread(['title' => null])
+            ->assertSessionHasErrors('title');
+    }
+
+    /**
+     * @expectedException Illuminate\Validation\ValidationException
+     * @test */
+    function a_thread_requires_a_body()
+    {
+        $this->publishThread(['body' => null])
+            ->assertSessionHasErrors('body');
+    }
+
+    /**
+     * @expectedException Illuminate\Validation\ValidationException
+     * @test */
+    function a_thread_requires_a_valid_channel()
+    {
+        $this->publishThread(['channel_id' => null])
+            ->assertSessionHasErrors('channel_id');
+    }
+
+    public function publishThread($attributes)
+    {
+        $this->signIn();
+
+        $thread = make('App\Thread', $attributes);
+
+        return $this->post('/threads', $thread->toArray());
+    }
+    
+    /**
+     * @expectedException Illuminate\Auth\AuthenticationException
+     * @test */
+    function guests_cannot_see_the_create_thread_page()
+    {
+        $this->get('/threads/create')
+            ->assertRedirect('/login');
     }
 }
