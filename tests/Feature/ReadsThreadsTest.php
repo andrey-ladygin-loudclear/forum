@@ -75,6 +75,6 @@ class ReadsThreadsTest extends TestCase
         $threadWithNoReplies = $this->thread;
 
         $response = $this->getJson('threads?popular=1')->json();
-        $response->assertEquals([3,2,0], array_column($response, 'replies_count'));
+        $this->assertEquals([3,2,0], array_column($response, 'replies_count'));
     }
 }

@@ -58,7 +58,7 @@ class CreateThreadsTest extends TestCase
         $this->publishThread(['body' => null])
             ->assertSessionHasErrors('body');
     }
-
+    
     /**
      * @expectedException Illuminate\Validation\ValidationException
      * @test */
@@ -66,6 +66,37 @@ class CreateThreadsTest extends TestCase
     {
         $this->publishThread(['channel_id' => null])
             ->assertSessionHasErrors('channel_id');
+    }
+
+    /**
+     * @expectedException Illuminate\Auth\AuthenticationException
+     * @test */
+    function guests_cannot_delete_threads()
+    {
+        $thread = create('App\Thread');
+        $response = $this->json('DELETE', $thread->path());
+    }
+
+    /** @test */
+    function a_thread_can_be_deleted()
+    {
+        $this->signIn();
+
+        $thread = create('App\Thread');
+        $reply = create('App\Reply', ['thread_id' => $thread->id]);
+
+        $response = $this->json('DELETE', $thread->path());
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseMissing('threads', ['id' => $thread->id]);
+        $this->assertDatabaseMissing('replies', ['id' => $reply->id]);
+    }
+    
+    /** @test */
+    function threads_may_only_be_deleted_by_those_who_have_permission()
+    {
+        
     }
 
     public function publishThread($attributes)
