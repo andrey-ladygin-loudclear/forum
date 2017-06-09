@@ -71,18 +71,30 @@ class CreateThreadsTest extends TestCase
     /**
      * @expectedException Illuminate\Auth\AuthenticationException
      * @test */
-    function guests_cannot_delete_threads()
+    function guests_may_not_delete_threads()
     {
         $thread = create('App\Thread');
-        $response = $this->json('DELETE', $thread->path());
+//        $response = $this->json('DELETE', $thread->path());
+        $this->delete($thread->path());
+    }
+
+    /**
+     * @expectedException Illuminate\Auth\Access\AuthorizationException
+     * @test */
+    function unauthorized_users_may_not_delete_threads()
+    {
+        $thread = create('App\Thread');
+        $this->signIn();
+        $this->json('DELETE', $thread->path())
+            ->assertStatus(403);
     }
 
     /** @test */
-    function a_thread_can_be_deleted()
+    function authorized_users_can_delete_threads()
     {
         $this->signIn();
 
-        $thread = create('App\Thread');
+        $thread = create('App\Thread', ['user_id' => auth()->id()]);
         $reply = create('App\Reply', ['thread_id' => $thread->id]);
 
         $response = $this->json('DELETE', $thread->path());
@@ -91,12 +103,6 @@ class CreateThreadsTest extends TestCase
 
         $this->assertDatabaseMissing('threads', ['id' => $thread->id]);
         $this->assertDatabaseMissing('replies', ['id' => $reply->id]);
-    }
-    
-    /** @test */
-    function threads_may_only_be_deleted_by_those_who_have_permission()
-    {
-        
     }
 
     public function publishThread($attributes)
