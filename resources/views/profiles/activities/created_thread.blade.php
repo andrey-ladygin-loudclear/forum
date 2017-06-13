@@ -1,13 +1,9 @@
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <div class="level">
-            <span class="flex">
-                {{ $profileUser->name }} published a "{{ $activity->subject->title }}"
-            </span>
-        </div>
-    </div>
+@component('profiles.activities.activity')
+    @slot('heading')
+        {{ $profileUser->name }} published a <a href="{{ $activity->subject->path() }}">{{ $activity->subject->title }}</a>
+    @endslot
 
-    <div class="panel-body">
+    @slot('body')
         {{ $activity->subject->body }}
-    </div>
-</div>
+    @endslot
+@endcomponent
