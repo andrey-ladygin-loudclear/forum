@@ -50,7 +50,8 @@ class RepliesController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        return back();
+        return back()
+            ->with('flash', 'Your reply has been added!');
     }
 
     /**
@@ -84,7 +85,9 @@ class RepliesController extends Controller
      */
     public function update(Request $request, Reply $reply)
     {
-        //
+        $this->authorize('update', $reply);
+
+        $reply->update(request(['body']));
     }
 
     /**
@@ -95,6 +98,14 @@ class RepliesController extends Controller
      */
     public function destroy(Reply $reply)
     {
-        //
+        $this->authorize('update', $reply);
+
+        $reply->delete();
+
+        if(request()->expectsJson()) {
+            return response(['status' => 1]);
+        }
+
+        return back();
     }
 }

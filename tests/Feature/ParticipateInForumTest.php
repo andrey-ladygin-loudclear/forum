@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Reply;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -56,5 +57,74 @@ class ParticipateInForumTest extends TestCase
 
         $this->post($thread->path().'/replies', $reply->toArray())
             ->assertSessionHasErrors('title');
+    }
+
+    /**
+     * @expectedException Illuminate\Auth\AuthenticationException
+     * @test */
+    function unauthorized_users_cannot_delete_replies()
+    {
+        $reply = create(Reply::class);
+
+        $this->delete("/replies/{$reply->id}");
+    }
+
+    /**
+     * @expectedException Illuminate\Auth\Access\AuthorizationException
+     * @test */
+    function another_user_cannot_delete_replies()
+    {
+        $reply = create(Reply::class);
+
+        $this->signIn()
+            ->delete("/replies/{$reply->id}")
+            ->assertStatus(403);
+    }
+
+    /** @test */
+    function authorized_users_can_delete_replies()
+    {
+        $this->signIn();
+        $reply = create(Reply::class, ['user_id' => auth()->id()]);
+
+        $this->delete("/replies/{$reply->id}")->assertStatus(302);
+
+        $this->assertDatabaseMissing('replies', ['id' => $reply->id]);
+    }
+
+    /** @test */
+    function authorized_users_can_update_replies()
+    {
+        $this->signIn();
+        $reply = create(Reply::class, ['user_id' => auth()->id()]);
+        $body = 'You been changed, fool.';
+
+        $this->patch("/replies/{$reply->id}", ['body' => $body]);
+
+        $this->assertDatabaseHas('replies', ['id' => $reply->id, 'body' => $body]);
+    }
+
+    /**
+     * @expectedException Illuminate\Auth\AuthenticationException
+     * @test */
+    function unauthorized_users_cannot_update_replies()
+    {
+        $reply = create(Reply::class);
+        $body = 'You been changed, fool.';
+
+        $this->patch("/replies/{$reply->id}", ['body' => $body]);
+    }
+
+    /**
+     * @expectedException Illuminate\Auth\Access\AuthorizationException
+     * @test */
+    function another_user_cannot_update_replies()
+    {
+        $reply = create(Reply::class);
+        $body = 'You been changed, fool.';
+
+        $this->signIn()
+            ->patch("/replies/{$reply->id}", ['body' => $body])
+            ->assertStatus(403);
     }
 }
