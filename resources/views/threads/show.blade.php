@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+    <thread-view inline-template></thread-view>
+
     <div class="container">
         <div class="row">
             <div class="col-md-8">
@@ -27,11 +29,13 @@
                     </div>
                 </div>
 
-                @foreach($replies as $reply)
-                    @include('threads.reply')
-                @endforeach
+                <replies :data="{{ $thread->replies }}"></replies>
 
-                {{ $replies->links() }}
+                {{--@foreach($replies as $reply)--}}
+                    {{--@include('threads.reply')--}}
+                {{--@endforeach--}}
+
+                {{--{{ $replies->links() }}--}}
 
                 @if(auth()->check())
                     <form method="post" action="{{ $thread->path() . '/replies' }}">
