@@ -17,6 +17,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+//check file extension
+pathinfo($file, PATHINFO_EXTENSION);
 
 Auth::routes();
 
